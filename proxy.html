@@ -1,182 +1,82 @@
 <!DOCTYPE html>
-<!--
-  Hey you! Yeah, you reading this like a curious little nerd.
-  This is Road.js' "I kinda know what I'm doing" browser proxy.
-  Warning: I hate HTML. I hate static pages. I still made this. Somehow.
-  Don't @ me. Just enjoy the chaos. 💀❤️
--->
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Browser of Doom</title>
+
+  <!-- libs -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dreamland"></script>
+
+  <!-- proxy engines -->
+  <script src="/baremux/index.js"></script>
+  <script src="/scram/scramjet.all.js"></script>
+  <script src="/proxy.config.js"></script>
 
   <style>
-    /* General body / HTML chaos */
-    body,
-    html,
-    #app {
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      width: 100vw;
-      height: 100vh;
+    :root {
+      --bg: #0b0e14;
+      --text-color: #e6e6eb;
+      --secondary-text-color: #9aa0aa;
+      --button-bg: #161a22;
+      --button-hover: #1f2430;
+      --third-bg: #2a3040;
+      --primary: #7aa2ff;
+    }
+
+    html, body, #app {
       margin: 0;
       padding: 0;
-      background: var(--bg); /* pro hint: change this to purple if you want to annoy your coworkers */
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg);
+      color: var(--text-color);
+      font-family: system-ui, sans-serif;
       overflow: hidden;
-    }
-
-    /* Fade in animation for dramatic entrances */
-    @keyframes fade {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    /* Spin your problems away */
-    @keyframes spin {
-      to { transform: rotate(360deg); }
     }
 
     .flex { display: flex; }
-    .col { flex-direction: column; }
-
-    /* Main container chaos */
     .browser-container {
-      width: 100%;
-      height: 100%;
-      color: var(--text-color);
       display: flex;
       flex-direction: column;
-      padding: 0.5em;
-      padding-top: 0;
+      height: 100%;
+      padding: 0.5rem;
       box-sizing: border-box;
     }
 
-    /* Links be fancy but chill */
-    .browser-container a {
-      color: var(--primary);
-      text-decoration: none; /* because who likes underlines? */
-    }
-
-    /* Inputs and buttons try to behave */
-    .browser-container input,
-    .browser-container button {
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
-    /* Headings, because we must pretend we know what we're doing */
-    .browser-container h1 {
-      margin-bottom: 0;
-      color: var(--text-color);
-    }
-
-    /* iframe hell container */
-    .browser-container iframe {
-      background-color: #fff;
-      border: none;
-      border-radius: 12px;
-      flex: 1;
-      width: 100%;
-    }
-
-    /* Address bar that sometimes works */
-    input.bar {
-      font-family: "Inter";
-      padding: 0.6rem 1rem;
-      border: none;
-      outline: none;
-      color: var(--text-color);
-      height: auto;
-      border-radius: 8px;
-      flex: 1;
-      background: var(--button-bg);
-      font-size: 1.1rem;
-      transition: 0.2s ease;
-    }
-
-    input.bar:focus {
-      background-color: var(--button-hover);
-    }
-
-    /* Tiny text tweaks */
-    p { margin: 0; margin-top: 0.2em; }
-
-    /* Nav buttons be snazzy */
-    .nav {
-      padding-top: 0.6rem;
-      padding-bottom: 0.6rem;
-      gap: 0.5rem;
-    }
-
-    .nav button {
-      color: var(--text-color);
-      outline: none;
-      border: none;
-      border-radius: 8px;
-      background: var(--button-bg);
-      padding: 0.6rem 1rem;
-      cursor: pointer;
-      transition: 0.2s ease;
-      font-size: 1.1rem;
-    }
-
-    .nav button:hover {
-      background-color: var(--button-hover);
-    }
-
-    /* Tabs are a necessary evil */
     .tabs {
-      padding-top: 0.6rem;
-      padding-bottom: 0rem;
-      gap: 0.3rem;
+      display: flex;
+      gap: 0.4rem;
       overflow-x: auto;
-      overflow-y: hidden;
-      white-space: nowrap;
     }
 
-    /* scrollbar because we can't just trust humans */
-    .tabs::-webkit-scrollbar { height: 4px; }
-    .tabs::-webkit-scrollbar-track { background: transparent; }
-    .tabs::-webkit-scrollbar-thumb { background: var(--third-bg); border-radius: 2px; }
-
-    .tab {
-      color: var(--text-color);
-      outline: none;
-      border: none;
-      border-radius: 8px;
+    .tab, .new-tab {
       background: var(--button-bg);
-      padding: 0.5rem 1rem;
-      width: 245px;
-      min-width: 245px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.5rem;
       cursor: pointer;
-      flex-shrink: 0;
-      transition: 0.2s ease;
-      font-size: 1rem;
+      user-select: none;
+      min-width: 220px;
     }
 
-    .tab.active { background-color: var(--button-hover); }
-    .tab:hover:not(.active) { background-color: var(--third-bg); }
+    .tab.active { background: var(--button-hover); }
+    .tab:hover { background: var(--third-bg); }
 
-    /* Because favicons deserve love too */
     .tab-favicon {
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
       border-radius: 4px;
     }
 
     .tab-title {
       flex: 1;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     .tab-close {
@@ -184,373 +84,223 @@
       border: none;
       color: var(--secondary-text-color);
       cursor: pointer;
-      padding: 0;
-      width: 20px;
-      height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      flex-shrink: 0;
-      transition: 0.2s ease;
       font-size: 1.2rem;
     }
 
-    .tab-close:hover {
-      background-color: var(--third-bg);
-      color: var(--text-color);
+    .nav {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
     }
 
-    /* New tab button, aka "+", aka chaos initiator */
-    .new-tab {
+    .nav button {
+      background: var(--button-bg);
+      border: none;
       color: var(--text-color);
-      outline: none;
+      padding: 0.5rem 0.8rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .nav button:hover { background: var(--button-hover); }
+
+    input.bar {
+      flex: 1;
+      background: var(--button-bg);
       border: none;
       border-radius: 8px;
-      background: var(--button-bg);
-      padding: 0.7rem;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: 0.2s ease;
-      font-size: 1.3rem;
+      padding: 0.5rem 0.8rem;
+      color: var(--text-color);
+      outline: none;
     }
 
-    .new-tab:hover { background-color: var(--button-hover); }
+    .iframe-container {
+      flex: 1;
+      margin-top: 0.5rem;
+      position: relative;
+    }
 
-    /* iframe container, because browsers need containers */
-    .iframe-container { flex: 1; position: relative; }
-    .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-    .iframe-container iframe.hidden { display: none; }
+    iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 12px;
+      background: #fff;
+    }
 
-    /* Sortable chaos */
-    .sortable-ghost { opacity: 0.5 !important; }
-    .sortable-drag { transform: rotate(2deg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
-
-    /* Version tag so you can brag about your proxy */
-    .version { color: var(--secondary-text-color) !important; font-size: 1rem; margin-left: auto; }
-    .version b { color: var(--text-color); }
-    .config-btn { display: none; }
+    iframe.hidden { display: none; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/dreamland"></script>
-  <script src="/media/archive/Simple-Scramjet-proxy-static-HTML-.zip/Simple-Scramjet-proxy-static-HTML--main/baremux/index.js"></script>
-  <script src="/media/archive/Simple-Scramjet-proxy-static-HTML-.zip/Simple-Scramjet-proxy-static-HTML--main/scram/scramjet.all.js"></script>
-  <script src="/media/archive/Simple-Scramjet-proxy-static-HTML-.zip/Simple-Scramjet-proxy-static-HTML--main/proxy.config.js"></script>
 </head>
 
 <body>
-  <div id="app"></div>  # A FUCK TONE OF HTML HERE IK
+  <div id="app"></div>
+
   <script>
+    /* ===== HARD FAIL GUARDS ===== */
+    if (!window.$scramjetLoadController) {
+      document.body.innerText = "Scramjet failed to load";
+      throw new Error("Scramjet missing");
+    }
+    if (!window.BareMux) {
+      document.body.innerText = "BareMux failed to load";
+      throw new Error("BareMux missing");
+    }
+
+    /* ===== SCRAMJET ===== */
     const { ScramjetController } = $scramjetLoadController();
-    
+
     const scramjet = new ScramjetController({
       files: {
-        wasm: "/media/archive/Simple-Scramjet-proxy-static-HTML-.zip/Simple-Scramjet-proxy-static-HTML--main/scram/scramjet.wasm.wasm",
-        all: "/media/archive/Simple-Scramjet-proxy-static-HTML-.zip/Simple-Scramjet-proxy-static-HTML--main/scram/scramjet.all.js",
-        sync: "/media/archive/Simple-Scramjet-proxy-static-HTML-.zip/Simple-Scramjet-proxy-static-HTML--main/scram/scramjet.sync.js",
-      },
+        wasm: "/scram/scramjet.wasm.wasm",
+        all: "/scram/scramjet.all.js",
+        sync: "/scram/scramjet.sync.js"
+      }
     });
-    
+
     scramjet.init();
-    navigator.serviceWorker.register("./swsj.js");
 
+    /* ===== SERVICE WORKER ===== */
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/swsjs.js").catch(console.error);
+    }
 
-    const connection = new BareMux.BareMuxConnection("/media/archive/Simple-Scramjet-proxy-static-HTML-.zip/Simple-Scramjet-proxy-static-HTML--main/baremux/worker.js");
+    /* ===== BAREMUX ===== */
+    const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
 
     const store = {
-      url: "https://",
       wispurl: localStorage.getItem("proxServer") || "wss://gointospace.app/wisp/",
       bareurl:
-        _CONFIG?.bareurl ||
         (location.protocol === "https:" ? "https" : "http") +
         "://" +
         location.host +
-        "/bare/",
-      proxy: "",
+        "/bare/"
     };
 
-    connection.setTransport("/media/archive/Simple-Scramjet-proxy-static-HTML-.zip/Simple-Scramjet-proxy-static-HTML--main/epoxy/index.mjs", [{ wisp: store.wispurl }]);
+    connection.setTransport("/epoxy/index.mjs", [{ wisp: store.wispurl }]);
 
-    // tab management
+    /* ===== TAB SYSTEM ===== */
     let tabs = [];
-    let activeTabId = 1;
-    let nextTabId = 2;
-    let sortableInstance = null;
+    let activeTabId = 0;
+    let nextTabId = 1;
 
-    function getFaviconUrl(url) {
+    function favicon(url) {
       try {
-        const domain = new URL(url).origin;
-        return `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(
-          domain
-        )}`;
+        return `https://t0.gstatic.com/faviconV2?url=${new URL(url).origin}&size=32`;
       } catch {
-        return `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(
-          url
-        )}`;
+        return "";
       }
     }
 
-    function createTab() {
+    function createTab(url = "https://start.duckduckgo.com/") {
       const frame = scramjet.createFrame();
-      const tab = {
-        id: nextTabId++,
-        title: "New Tab",
-        url: "https://start.duckduckgo.com/",
-        frame: frame,
-        favicon: getFaviconUrl("https://start.duckduckgo.com"),
-      };
-
       frame.frame.src = "/page/newtab.html";
 
-      frame.addEventListener("urlchange", (e) => {
+      const tab = {
+        id: nextTabId++,
+        url,
+        title: "New Tab",
+        frame,
+        icon: favicon(url)
+      };
+
+      frame.addEventListener("urlchange", e => {
         if (!e.url) return;
         tab.url = e.url;
-        tab.favicon = getFaviconUrl(e.url);
-
+        tab.icon = favicon(e.url);
         try {
-          const title =
-            frame.frame.contentWindow?.document?.title ||
-            new URL(e.url).hostname;
-          tab.title = title || "...";
-        } catch (err) {
-          tab.title = new URL(e.url).hostname || "...";
+          tab.title = frame.frame.contentWindow.document.title || new URL(e.url).hostname;
+        } catch {
+          tab.title = new URL(e.url).hostname;
         }
-
-        updateTabsUI();
-        updateAddressBar();
+        renderTabs();
+        updateBar();
       });
 
       tabs.push(tab);
-      return tab;
+      document.getElementById("iframe-container").appendChild(frame.frame);
+      switchTab(tab.id);
     }
 
-    function getActiveTab() {
-      return tabs.find((tab) => tab.id === activeTabId);
+    function switchTab(id) {
+      tabs.forEach(t => t.frame.frame.classList.add("hidden"));
+      activeTabId = id;
+      const tab = tabs.find(t => t.id === id);
+      if (tab) tab.frame.frame.classList.remove("hidden");
+      renderTabs();
+      updateBar();
     }
 
-    function switchTab(tabId) {
-      tabs.forEach((tab) => {
-        tab.frame.frame.classList.add("hidden");
-      });
-
-      activeTabId = tabId;
-      const activeTab = getActiveTab();
-      if (activeTab) {
-        activeTab.frame.frame.classList.remove("hidden");
-      }
-
-      updateTabsUI();
-      updateAddressBar();
+    function closeTab(id) {
+      const i = tabs.findIndex(t => t.id === id);
+      if (i === -1) return;
+      tabs[i].frame.frame.remove();
+      tabs.splice(i, 1);
+      if (!tabs.length) createTab();
+      else switchTab(tabs[Math.max(0, i - 1)].id);
     }
 
-    function closeTab(tabId) {
-      const tabIndex = tabs.findIndex((tab) => tab.id === tabId);
-      if (tabIndex === -1) return;
-
-      const tab = tabs[tabIndex];
-
-
-      if (tabs.length === 1) {
-        const newTab = createTab();
-        document.getElementById("iframe-container").appendChild(newTab.frame.frame);
-        switchTab(newTab.id);
-      }
-
-      if (tab.frame.frame.parentNode) {
-        tab.frame.frame.parentNode.removeChild(tab.frame.frame);
-      }
-
-      tabs.splice(tabIndex, 1);
-
-
-      if (activeTabId === tabId && tabs.length > 0) {
-        const newActiveIndex = Math.min(tabIndex, tabs.length - 1);
-        activeTabId = tabs[newActiveIndex].id;
-        switchTab(activeTabId);
-      } else {
-        updateTabsUI();
-      }
+    function activeTab() {
+      return tabs.find(t => t.id === activeTabId);
     }
 
-    function updateTabsUI() {
-      const tabsContainer = document.getElementById("tabs-container");
-      if (!tabsContainer) return;
-
-      tabsContainer.innerHTML = "";
-
-      tabs.forEach((tab) => {
-        const tabElement = document.createElement("div");
-        tabElement.className = `tab ${tab.id === activeTabId ? "active" : ""
-          }`;
-        tabElement.setAttribute("data-tab-id", tab.id);
-        tabElement.onclick = () => switchTab(tab.id);
-
-        const faviconImg = document.createElement("img");
-        faviconImg.className = "tab-favicon";
-        faviconImg.src = tab.favicon;
-        faviconImg.alt = "";
-        faviconImg.onerror = () => {
-          faviconImg.style.display = "none";
-        };
-
-        const titleSpan = document.createElement("span");
-        titleSpan.className = "tab-title";
-        titleSpan.textContent = tab.title;
-
-        const closeButton = document.createElement("button");
-        closeButton.className = "tab-close";
-        closeButton.textContent = "×";
-        closeButton.onclick = (e) => {
-          e.stopPropagation();
-          closeTab(tab.id);
-        };
-
-        tabElement.appendChild(faviconImg);
-        tabElement.appendChild(titleSpan);
-        tabElement.appendChild(closeButton);
-        tabsContainer.appendChild(tabElement);
-      });
-
-      const newTabButton = document.createElement("button");
-      newTabButton.className = "new-tab";
-      newTabButton.textContent = "+";
-      newTabButton.onclick = () => {
-        const newTab = createTab();
-        document
-          .getElementById("iframe-container")
-          .appendChild(newTab.frame.frame);
-        switchTab(newTab.id);
-      };
-      tabsContainer.appendChild(newTabButton);
-
-      if (sortableInstance) {
-        sortableInstance.destroy();
-      }
-
-      sortableInstance = new Sortable(tabsContainer, {
-        animation: 200,
-        direction: "horizontal",
-        ghostClass: "sortable-ghost",
-        dragClass: "sortable-drag",
-        filter: ".new-tab",
-        onStart: () => {
-          tabsContainer
-            .querySelectorAll(".tab:not(.sortable-ghost)")
-            .forEach((t) => {
-              t.style.opacity = "0.5";
-            });
-        },
-        onEnd: (evt) => {
-          tabsContainer.querySelectorAll(".tab").forEach((t) => {
-            t.style.opacity = "1";
-          });
-
-          if (evt.oldIndex !== evt.newIndex) {
-            const movedTab = tabs.splice(evt.oldIndex, 1)[0];
-            tabs.splice(evt.newIndex, 0, movedTab);
-          }
-        },
-      });
+    function updateBar() {
+      const t = activeTab();
+      if (t) document.getElementById("address-bar").value = t.url;
     }
 
-    function updateAddressBar() {
-      const addressBar = document.getElementById("address-bar");
-      const activeTab = getActiveTab();
-      if (addressBar && activeTab) {
-        addressBar.value = activeTab.url;
+    function submit() {
+      const t = activeTab();
+      let v = address.value.trim();
+      if (!v.startsWith("http")) {
+        v = v.includes(".") ? "https://" + v : "https://duckduckgo.com/?q=" + encodeURIComponent(v);
       }
+      t.frame.go(v);
     }
 
-    function handleSubmit() {
-      const activeTab = getActiveTab();
-      const addressBar = document.getElementById("address-bar");
-      if (!activeTab || !addressBar) return;
-
-      let url = addressBar.value.trim();
-
-
-      if (!url.startsWith("http") && !url.includes(".")) {
-
-        url = "https://duckduckgo.com/?q=" + encodeURIComponent(url);
-      } else if (!url.startsWith("http")) {
-
-        url = "https://" + url;
-      }
-
-      activeTab.url = url;
-      activeTab.favicon = getFaviconUrl(url);
-      return activeTab.frame.go(url);
-    }
-
-    window.addEventListener("load", async () => {
-      const root = document.getElementById("app");
-
-      root.innerHTML = `
-          <div class="browser-container">
-            <div class="flex tabs" id="tabs-container">
-            </div>
-
-            <div class="flex nav">
-              <button onclick="getActiveTab()?.frame.back()"><i class="fa-regular fa-chevron-left"></i></button>
-              <button onclick="getActiveTab()?.frame.forward()"><i class="fa-regular fa-chevron-right"></i></button>
-              <button onclick="getActiveTab()?.frame.reload()"><i class="fa-regular fa-rotate-right"></i></button>
-
-              <input class="bar" id="address-bar" autocomplete="off" autocapitalize="off" autocorrect="off" 
-                onkeyup="event.keyCode === 13 && handleSubmit()">
-
-              <button onclick="window.open(scramjet.encodeUrl(getActiveTab()?.url))"><i class="fa-regular fa-arrow-up-right-from-square"></i></button>
-
-              <p class="version">
-                <b></b>
-              </p>
-            </div>
-
-            <div class="iframe-container" id="iframe-container">
-            </div>
-          </div>
+    function renderTabs() {
+      const el = document.getElementById("tabs");
+      el.innerHTML = "";
+      tabs.forEach(t => {
+        const d = document.createElement("div");
+        d.className = "tab" + (t.id === activeTabId ? " active" : "");
+        d.onclick = () => switchTab(t.id);
+        d.innerHTML = `
+          <img class="tab-favicon" src="${t.icon}">
+          <span class="tab-title">${t.title}</span>
+          <button class="tab-close">×</button>
         `;
+        d.querySelector(".tab-close").onclick = e => {
+          e.stopPropagation();
+          closeTab(t.id);
+        };
+        el.appendChild(d);
+      });
 
-      const initialTab = createTab();
-      document
-        .getElementById("iframe-container")
-        .appendChild(initialTab.frame.frame);
-      switchTab(initialTab.id);
-      updateTabsUI();
+      const add = document.createElement("div");
+      add.className = "new-tab";
+      add.textContent = "+";
+      add.onclick = () => createTab();
+      el.appendChild(add);
+    }
 
-      try {
-        function b64(buffer) {
-          let binary = "";
-          const bytes = new Uint8Array(buffer);
-          const len = bytes.byteLength;
-          for (let i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
-          }
-          return btoa(binary);
-        }
-        const arraybuffer = await (
-          await fetch("/media/archive/Simple-Scramjet-proxy-static-HTML-.zip/Simple-Scramjet-proxy-static-HTML--main/assets/scramjet.png")
-        ).arrayBuffer();
-        console.log(
-          "%cb",
-          `
-              background-image: url(data:image/png;base64,${b64(arraybuffer)});
-              color: transparent;
-              padding-left: 200px;
-              padding-bottom: 100px;
-              background-size: contain;
-              background-position: center center;
-              background-repeat: no-repeat;
-          `
-        );
-      } catch (e) {
-        // naw
-      }
-    });
+    /* ===== UI BOOT ===== */
+    app.innerHTML = `
+      <div class="browser-container">
+        <div class="tabs" id="tabs"></div>
+        <div class="nav">
+          <button onclick="activeTab()?.frame.back()">←</button>
+          <button onclick="activeTab()?.frame.forward()">→</button>
+          <button onclick="activeTab()?.frame.reload()">⟳</button>
+          <input id="address-bar" class="bar" onkeydown="event.key==='Enter'&&submit()">
+          <button onclick="window.open(scramjet.encodeUrl(activeTab()?.url))">↗</button>
+        </div>
+        <div class="iframe-container" id="iframe-container"></div>
+      </div>
+    `;
+
+    createTab();
   </script>
 </body>
-
 </html>
